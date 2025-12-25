@@ -1,0 +1,18 @@
+_target_: flood_area_segmentation.data.datamodule.FloodDataModule
+data_dir: data/raw
+images_subdir: images
+masks_subdir: masks
+image_height: 512
+image_width: 512
+batch_size: 16
+num_workers: 4
+val_split: 0.2
+mean:
+  - 0.485
+  - 0.456
+  - 0.406
+std:
+  - 0.229
+  - 0.224
+  - 0.225
+seed: 42

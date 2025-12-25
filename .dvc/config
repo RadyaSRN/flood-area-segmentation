@@ -1,0 +1,6 @@
+[core]
+    remote = minio
+['remote "minio"']
+    url = s3://dvc-storage-flood-area-segmentation
+    endpointurl = http://217.60.63.5:9000
+    use_ssl = false

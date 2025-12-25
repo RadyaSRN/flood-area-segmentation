@@ -1,0 +1,26 @@
+defaults:
+  - _self_
+  - datamodule: flood_data
+  - model: resnet34_unet
+  - logger: mlflow
+
+seed: 42
+
+trainer:
+  accelerator: auto
+  devices: 1
+  max_epochs: 100
+  log_every_n_steps: 5
+  fast_dev_run: false
+
+early_stopping:
+  patience: 15
+  monitor: val_iou
+  mode: max
+
+paths:
+  outputs_dir: ./outputs
+  plots_dir: ./plots
+
+production:
+  export_onnx: true

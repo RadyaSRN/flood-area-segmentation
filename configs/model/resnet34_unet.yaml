@@ -1,0 +1,12 @@
+_target_: flood_area_segmentation.models.unet.UNet
+encoder_name: resnet34
+encoder_weights: imagenet
+in_channels: 3
+num_classes: 1
+learning_rate: 0.001
+pos_weight: 3.0
+threshold: 0.5
+scheduler_factor: 0.5
+scheduler_patience: 7
+scheduler_mode: max
+scheduler_monitor: val_iou
