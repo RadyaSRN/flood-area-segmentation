@@ -148,7 +148,7 @@ class Commands:
         image: str,
         out: str,
         triton_url: str = "localhost:8000",
-        model_name: str = "flood_segmentation",
+        model_name: str = "flood_area_segmentation",
     ) -> None:
         """Отправляет изображение на Triton и сохраняет маску.
 

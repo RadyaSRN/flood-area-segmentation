@@ -1,0 +1,6 @@
+outs:
+- md5: 244ebf39364ca3226b0c8914887f7d6f.dir
+  size: 121920887
+  nfiles: 3
+  hash: md5
+  path: mobilenet_unet

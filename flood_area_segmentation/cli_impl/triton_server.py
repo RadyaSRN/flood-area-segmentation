@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 TRITON_REPO_DIRNAME = "triton_model_repository"
-TRITON_MODEL_NAME = "flood_segmentation"
+TRITON_MODEL_NAME = "flood_area_segmentation"
 CONFIG_PBTXT_NAME = "config.pbtxt"
 CONFIG_ONNX_NAME = "config_onnx.pbtxt"
 CONFIG_TRT_NAME = "config_trt.pbtxt"
@@ -46,6 +46,8 @@ def run_triton_server(
     triton_repo = project_root / TRITON_REPO_DIRNAME
 
     model_dir = triton_repo / TRITON_MODEL_NAME / "1"
+    if model_dir.exists():
+        shutil.rmtree(model_dir)
     model_dir.mkdir(parents=True, exist_ok=True)
 
     if not model_path.exists():
@@ -70,6 +72,12 @@ def run_triton_server(
         print(f"Ошибка: Конфиг не найден: {config_src}")
         sys.exit(1)
     shutil.copy(config_src, config_dst)
+
+    subprocess.run(
+        ["docker", "rm", "-f", container_name],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
     cmd = [
         "docker",

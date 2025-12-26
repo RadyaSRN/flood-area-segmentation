@@ -1,0 +1,6 @@
+outs:
+- md5: 2dd893b74cca286692b81b934712eae6.dir
+  size: 441911045
+  nfiles: 3
+  hash: md5
+  path: resnet34_unet
