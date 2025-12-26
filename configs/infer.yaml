@@ -1,0 +1,5 @@
+defaults:
+  - _self_
+  - datamodule: flood_data
+
+threshold: 0.5

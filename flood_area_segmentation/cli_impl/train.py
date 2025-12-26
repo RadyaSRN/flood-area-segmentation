@@ -4,7 +4,6 @@ from pathlib import Path
 
 import hydra
 import pytorch_lightning as pl
-import torch
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
@@ -29,61 +28,12 @@ def get_git_commit_id() -> str:
         return "unknown"
 
 
-def export_to_onnx(
-    model: pl.LightningModule, cfg: DictConfig, ckpt_path: Path, outputs_dir: Path
-) -> None:
-    """Экспортирует модель в формат ONNX.
-
-    Args:
-        model: Обученная модель PyTorch Lightning.
-        cfg: Конфигурация Hydra.
-        ckpt_path: Путь к чекпоинту модели.
-        outputs_dir: Директория для сохранения выходных файлов.
-    """
-    model_class = type(model)
-    best_model = model_class.load_from_checkpoint(ckpt_path, weights_only=False)
-    best_model.eval()
-    best_model.cpu()
-
-    dummy_input = torch.randn(
-        1, 3, cfg.datamodule.image_height, cfg.datamodule.image_width
-    )
-
-    hydra_output_dir = Path(
-        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    )
-    onnx_path = hydra_output_dir / "model.onnx"
-
-    torch.onnx.export(
-        best_model.model,
-        dummy_input,
-        str(onnx_path),
-        opset_version=18,
-        input_names=["input"],
-        output_names=["output"],
-        dynamic_axes={
-            "input": {0: "batch", 2: "height", 3: "width"},
-            "output": {0: "batch", 2: "height", 3: "width"},
-        },
-    )
-
-    print(f"ONNX модель сохранена: {onnx_path}")
-
-    symlink_path = outputs_dir / "model.onnx"
-    symlink_path.unlink(missing_ok=True)
-    symlink_path.symlink_to(onnx_path)
-
-
-@hydra.main(
-    version_base="1.3",
-    config_path=str(Path(__file__).resolve().parents[2] / "configs"),
-    config_name="train",
-)
-def train_main(cfg: DictConfig) -> None:
+def train_main(cfg: DictConfig, output_dir: Path) -> None:
     """Главная функция обучения модели.
 
     Args:
         cfg: Конфигурация Hydra.
+        output_dir: Директория для выходных файлов.
     """
     pl.seed_everything(cfg.seed, workers=True)
 
@@ -93,10 +43,9 @@ def train_main(cfg: DictConfig) -> None:
     print(f"Git commit: {git_commit}")
 
     project_root = Path(__file__).resolve().parents[2]
-    outputs_dir = project_root / cfg.paths.outputs_dir
     plots_dir = project_root / cfg.paths.plots_dir
-    outputs_dir.mkdir(parents=True, exist_ok=True)
     plots_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     datamodule = hydra.utils.instantiate(cfg.datamodule)
     model = hydra.utils.instantiate(cfg.model)
@@ -115,12 +64,8 @@ def train_main(cfg: DictConfig) -> None:
         params["git_commit"] = git_commit
         logger.log_hyperparams(params)
 
-    hydra_output_dir = Path(
-        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    )
-
     checkpoint_callback = ModelCheckpoint(
-        dirpath=hydra_output_dir,
+        dirpath=output_dir,
         filename="best-{epoch:02d}-{val_iou:.4f}",
         save_top_k=1,
         save_last=True,
@@ -143,7 +88,7 @@ def train_main(cfg: DictConfig) -> None:
     trainer = pl.Trainer(
         logger=logger,
         callbacks=callbacks,
-        default_root_dir=str(hydra_output_dir),
+        default_root_dir=str(output_dir),
         **cfg.trainer,
     )
 
@@ -151,20 +96,8 @@ def train_main(cfg: DictConfig) -> None:
 
     best_ckpt_path = Path(checkpoint_callback.best_model_path)
     if best_ckpt_path.exists() and best_ckpt_path.is_file():
-        symlink_path = outputs_dir / "best.ckpt"
+        symlink_path = output_dir / "best.ckpt"
         symlink_path.unlink(missing_ok=True)
         symlink_path.symlink_to(best_ckpt_path)
         print(f"Лучший чекпоинт: {best_ckpt_path}")
-
-    last_ckpt_path = hydra_output_dir / "last.ckpt"
-    if last_ckpt_path.exists() and last_ckpt_path.is_file():
-        symlink_last = outputs_dir / "last.ckpt"
-        symlink_last.unlink(missing_ok=True)
-        symlink_last.symlink_to(last_ckpt_path)
-
-    if (
-        cfg.production.export_onnx
-        and best_ckpt_path.exists()
-        and best_ckpt_path.is_file()
-    ):
-        export_to_onnx(model, cfg, best_ckpt_path, outputs_dir)
+        print(f"Симлинк: {symlink_path}")

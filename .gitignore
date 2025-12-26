@@ -229,5 +229,11 @@ mlflow.db
 # Plots (generated during training)
 plots/
 
+# Inference results
+inference_results/
+
+# Triton model repository (models are copied there dynamically)
+triton_model_repository/*/1/
+
 # Prettier
 node_modules/

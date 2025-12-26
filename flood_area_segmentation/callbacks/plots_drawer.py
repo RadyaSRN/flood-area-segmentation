@@ -8,10 +8,10 @@ class PlotMetricsCallback(Callback):
     """Callback для сохранения графиков метрик после обучения.
 
     Извлекает историю метрик из MLflow и сохраняет графики для всех 8 метрик:
-    - train_loss, val_loss
-    - train_iou, val_iou
-    - train_f1, val_f1
-    - train_accuracy, val_accuracy
+    - train_loss_epoch, val_loss
+    - train_iou_epoch, val_iou
+    - train_f1_epoch, val_f1
+    - train_accuracy_epoch, val_accuracy
 
     Args:
         out_dir: Директория для сохранения графиков.
@@ -55,30 +55,14 @@ class PlotMetricsCallback(Callback):
         run_out_dir.mkdir(parents=True, exist_ok=True)
 
         metrics_config = {
-            "train_loss": {"title": "Train Loss", "ylabel": "Loss", "xlabel": "Step"},
-            "val_loss": {
-                "title": "Validation Loss",
-                "ylabel": "Loss",
-                "xlabel": "Epoch",
-            },
-            "train_iou": {"title": "Train IoU", "ylabel": "IoU", "xlabel": "Step"},
-            "val_iou": {"title": "Validation IoU", "ylabel": "IoU", "xlabel": "Epoch"},
-            "train_f1": {"title": "Train F1 Score", "ylabel": "F1", "xlabel": "Step"},
-            "val_f1": {
-                "title": "Validation F1 Score",
-                "ylabel": "F1",
-                "xlabel": "Epoch",
-            },
-            "train_accuracy": {
-                "title": "Train Accuracy",
-                "ylabel": "Accuracy",
-                "xlabel": "Step",
-            },
-            "val_accuracy": {
-                "title": "Validation Accuracy",
-                "ylabel": "Accuracy",
-                "xlabel": "Epoch",
-            },
+            "train_loss_epoch": {"title": "Train Loss", "ylabel": "Loss"},
+            "val_loss": {"title": "Validation Loss", "ylabel": "Loss"},
+            "train_iou_epoch": {"title": "Train IoU", "ylabel": "IoU"},
+            "val_iou": {"title": "Validation IoU", "ylabel": "IoU"},
+            "train_f1_epoch": {"title": "Train F1 Score", "ylabel": "F1"},
+            "val_f1": {"title": "Validation F1 Score", "ylabel": "F1"},
+            "train_accuracy_epoch": {"title": "Train Accuracy", "ylabel": "Accuracy"},
+            "val_accuracy": {"title": "Validation Accuracy", "ylabel": "Accuracy"},
         }
 
         for metric_name, config in metrics_config.items():
@@ -92,7 +76,7 @@ class PlotMetricsCallback(Callback):
                 steps = [metric.step for metric in history]
 
                 ax.plot(steps, values, label=metric_name, linewidth=2)
-                ax.set_xlabel(config["xlabel"])
+                ax.set_xlabel("Step")
                 ax.set_ylabel(config["ylabel"])
                 ax.set_title(config["title"])
                 ax.legend()
@@ -107,13 +91,28 @@ class PlotMetricsCallback(Callback):
                 )
 
         self._plot_comparison(
-            client, run_id, run_out_dir, "loss", "Loss", ["train_loss", "val_loss"]
+            client,
+            run_id,
+            run_out_dir,
+            "loss",
+            "Loss",
+            ["train_loss_epoch", "val_loss"],
         )
         self._plot_comparison(
-            client, run_id, run_out_dir, "iou", "IoU", ["train_iou", "val_iou"]
+            client,
+            run_id,
+            run_out_dir,
+            "iou",
+            "IoU",
+            ["train_iou_epoch", "val_iou"],
         )
         self._plot_comparison(
-            client, run_id, run_out_dir, "f1", "F1 Score", ["train_f1", "val_f1"]
+            client,
+            run_id,
+            run_out_dir,
+            "f1",
+            "F1 Score",
+            ["train_f1_epoch", "val_f1"],
         )
         self._plot_comparison(
             client,
@@ -121,7 +120,7 @@ class PlotMetricsCallback(Callback):
             run_out_dir,
             "accuracy",
             "Accuracy",
-            ["train_accuracy", "val_accuracy"],
+            ["train_accuracy_epoch", "val_accuracy"],
         )
 
         print(f"[PlotMetricsCallback] Графики сохранены в: {run_out_dir}")
@@ -159,7 +158,7 @@ class PlotMetricsCallback(Callback):
                     has_data = True
 
             if has_data:
-                ax.set_xlabel("Step / Epoch")
+                ax.set_xlabel("Step")
                 ax.set_ylabel(ylabel)
                 ax.set_title(f"Train vs Validation {ylabel}")
                 ax.legend()

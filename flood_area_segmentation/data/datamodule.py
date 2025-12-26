@@ -9,6 +9,8 @@ from dvc.repo import Repo
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
+STANDARD_BINARIZATION_THRESHOLD = 127
+
 
 def ensure_data(project_root: Path, data_dir: str) -> None:
     """Проверяет наличие данных и скачивает их через DVC при необходимости.
@@ -66,7 +68,7 @@ class FloodSegmentationDataset(Dataset):
         """
         image = np.array(Image.open(self.image_paths[idx]).convert("RGB"))
         mask = np.array(Image.open(self.mask_paths[idx]).convert("L"))
-        mask = (mask > 127).astype(np.float32)
+        mask = (mask > STANDARD_BINARIZATION_THRESHOLD).astype(np.float32)
 
         if self.transform:
             transformed = self.transform(image=image, mask=mask)

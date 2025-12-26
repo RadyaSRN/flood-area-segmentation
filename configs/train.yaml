@@ -19,8 +19,4 @@ early_stopping:
   mode: max
 
 paths:
-  outputs_dir: ./outputs
   plots_dir: ./plots
-
-production:
-  export_onnx: true
