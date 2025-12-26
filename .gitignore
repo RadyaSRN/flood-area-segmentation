@@ -226,9 +226,6 @@ multirun/
 mlruns/
 mlflow.db
 
-# Plots (generated during training)
-plots/
-
 # Inference results
 inference_results/
 

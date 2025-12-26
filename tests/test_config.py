@@ -1,4 +1,5 @@
 import pytest
+from hydra.errors import MissingConfigException
 
 from flood_area_segmentation.commands import load_config
 
@@ -78,5 +79,5 @@ class TestConfig:
 
     def test_invalid_model_raises(self) -> None:
         """Проверяет, что невалидная модель вызывает ошибку."""
-        with pytest.raises(ValueError):
+        with pytest.raises(MissingConfigException):
             load_config("train", ["model=nonexistent_model"])
